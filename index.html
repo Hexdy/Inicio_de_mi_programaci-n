@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fundamentos de programación – de la RAM a los bucles</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #f7fafc;
+            color: #1a202c;
+            line-height: 1.7;
+            padding: 1.5rem;
+        }
+        .contenedor {
+            max-width: 960px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 1.5rem;
+            padding: 2rem;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+        }
+        h1 { font-size: 2.3rem; color: #2b6cb0; margin-bottom: 0.3rem; }
+        h2 { font-size: 1.6rem; color: #2c5282; margin: 1.8rem 0 1rem; border-bottom: 2px solid #bee3f8; padding-bottom: 0.3rem; }
+        h3 { font-size: 1.25rem; margin: 1.3rem 0 0.6rem; color: #2d3748; }
+        p, li { margin-bottom: 0.8rem; }
+        ul, ol { margin-left: 2rem; margin-bottom: 1rem; }
+        code {
+            background: #edf2f7;
+            padding: 0.2em 0.4em;
+            border-radius: 0.3rem;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 0.95em;
+        }
+        pre {
+            background: #1a202c;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 0.8rem;
+            overflow-x: auto;
+            margin-bottom: 1.2rem;
+        }
+        pre code { background: none; padding: 0; color: inherit; }
+        .bloque {
+            display: none;
+            animation: aparecer 0.4s ease;
+        }
+        .bloque.activo { display: block; }
+        @keyframes aparecer { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .test {
+            background: #ebf8ff;
+            border-left: 5px solid #3182ce;
+            padding: 1rem 1.2rem;
+            border-radius: 0.5rem;
+            margin: 1.5rem 0;
+        }
+        .test p { font-weight: bold; margin-bottom: 0.8rem; }
+        .opcion {
+            display: block;
+            margin: 0.5rem 0;
+            cursor: pointer;
+        }
+        .btn {
+            background: #3182ce;
+            color: white;
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 0.4rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 0.8rem;
+            transition: background 0.2s;
+        }
+        .btn:hover { background: #2b6cb0; }
+        .feedback {
+            margin-top: 0.5rem;
+            font-weight: bold;
+        }
+        .explicacion-extra {
+            background: #f0fff4;
+            border-left: 4px solid #38a169;
+            padding: 0.8rem 1rem;
+            margin-top: 0.8rem;
+            border-radius: 0.3rem;
+            display: none;
+        }
+        .explicacion-extra.mostrar { display: block; }
+        .barra-progreso {
+            display: flex;
+            gap: 0.3rem;
+            margin: 1rem 0 2rem;
+            flex-wrap: wrap;
+        }
+        .punto {
+            flex: 1;
+            min-width: 45px;
+            text-align: center;
+            padding: 0.4rem 0.2rem;
+            background: #e2e8f0;
+            border-radius: 0.4rem;
+            font-weight: 500;
+            font-size: 0.65rem;
+        }
+        .punto.completado { background: #c6f6d5; color: #22543d; }
+        .punto.actual { background: #bee3f8; color: #2c5282; }
+        table { border-collapse: collapse; margin: 1rem 0; width: auto; }
+        th, td { border: 1px solid #cbd5e0; padding: 0.4rem 0.8rem; text-align: center; font-size: 0.9rem; }
+        th { background: #edf2f7; }
+        .nota {
+            background: #fffff0;
+            border: 1px solid #f6e05e;
+            padding: 0.8rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+        }
+        .metafora {
+            background: #f0fff4;
+            border-left: 4px solid #38a169;
+            padding: 0.8rem;
+            margin: 1rem 0;
+            border-radius: 0.4rem;
+        }
+        .subtarea {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 0.8rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+        }
+        select {
+            padding: 0.3rem 0.5rem;
+            font-family: monospace;
+            border-radius: 0.3rem;
+            border: 1px solid #cbd5e0;
+        }
+        .auto-fill {
+            font-weight: bold;
+            background: #e6fffa;
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.3rem;
+        }
+    </style>
+</head>
+<body>
+<div class="contenedor">
+    <h1>🧠 De la lógica a los bucles</h1>
+    <p style="font-size:1.2rem; color:#4a5568;">Un curso interactivo que te enseña a pensar como programador, desde cero y sin prisa.</p>
+
+    <div class="barra-progreso" id="progreso"></div>
+
+    <!-- BLOQUE 0: Introducción -->
+    <div id="bloque0" class="bloque activo">
+        <h2>📍 Bienvenida</h2>
+        <p>Programar no es solo teclear código; es comprender cómo una máquina guarda, compara y repite información. Empezaremos por el principio: la memoria RAM.</p>
+        <p>No asumimos que sepas nada. Cada paso incluye un pequeño desafío. ¿Preparado?</p>
+
+        <div class="test">
+            <p>❓ ¿Cuál crees que es la principal función de la memoria RAM mientras usas un programa?</p>
+            <label class="opcion"><input type="radio" name="p0" value="a"> A) Almacenar fotos y documentos para siempre</label>
+            <label class="opcion"><input type="radio" name="p0" value="b"> B) Guardar temporalmente los datos con los que el programa trabaja ahora mismo</label>
+            <label class="opcion"><input type="radio" name="p0" value="c"> C) Calcular las sumas y restas</label>
+            <button class="btn" onclick="verificarBloque(0)">Comprobar</button>
+            <p class="feedback" id="fb0"></p>
+            <div class="explicacion-extra" id="ex0"></div>
+        </div>
+    </div>
+
+    <!-- BLOQUE 1: Memoria RAM -->
+    <div id="bloque1" class="bloque">
+        <h2>🧊 Paso 1: La RAM, un casillero gigante</h2>
+        <p>Imagina una pared llena de casilleros numerados (como los del gimnasio). Cada casillero se llama <strong>byte</strong> y guarda un número entre 0 y 255. Eso es la RAM.</p>
+        <div class="metafora">
+            <strong>💡 Metáfora:</strong><br>
+            Tu programa alquila algunos casilleros mientras se ejecuta. Cada variable es una etiqueta que pegas a uno o varios casilleros para recordar dónde dejaste la información.
+        </div>
+        <p>Las letras también se guardan como números (código ASCII): 'A'=65, 'B'=66… Por eso dentro de la RAM todo son números.</p>
+
+        <div class="test">
+            <p>❓ ¿Qué es una "dirección de memoria"?</p>
+            <label class="opcion"><input type="radio" name="p1" value="a"> A) El contenido que guardamos</label>
+            <label class="opcion"><input type="radio" name="p1" value="b"> B) El número que identifica un casillero concreto</label>
+            <label class="opcion"><input type="radio" name="p1" value="c"> C) El nombre de la variable</label>
+            <button class="btn" onclick="verificarBloque(1)">Comprobar</button>
+            <p class="feedback" id="fb1"></p>
+            <div class="explicacion-extra" id="ex1"></div>
+        </div>
+    </div>
+
+    <!-- BLOQUE 2: Tipos y almacenamiento -->
+    <div id="bloque2" class="bloque">
+        <h2>📏 Paso 2: Cada tipo alquila un número distinto de casilleros</h2>
+        <p>No todos los datos ocupan lo mismo. La variable conoce su "tipo" y eso determina cuántos bytes (casilleros) necesita:</p>
+        <ul>
+            <li><strong>Booleano (boolean):</strong> 1 byte. Guarda 0 (false) o 1 (true).</li>
+            <li><strong>Entero (integer):</strong> normalmente 4 u 8 bytes.</li>
+            <li><strong>Decimal (float):</strong> 4 u 8 bytes.</li>
+            <li><strong>Cadena (string):</strong> 1 byte por cada carácter. "Hola" ocupa 4 bytes.</li>
+            <li><strong>Carácter (char):</strong> un string de longitud 1. Ocupa 1 byte.</li>
+        </ul>
+        <div class="test">
+            <p>❓ Si la palabra "PHP" ocupa 3 bytes, ¿qué está almacenando realmente la RAM?</p>
+            <label class="opcion"><input type="radio" name="p2" value="a"> A) Las letras P, H, P dibujadas en pequeño</label>
+            <label class="opcion"><input type="radio" name="p2" value="b"> B) Los números 80, 72, 80 (códigos ASCII)</label>
+            <label class="opcion"><input type="radio" name="p2" value="c"> C) Solo la dirección de Google</label>
+            <button class="btn" onclick="verificarBloque(2)">Comprobar</button>
+            <p class="feedback" id="fb2"></p>
+            <div class="explicacion-extra" id="ex2"></div>
+        </div>
+    </div>
+
+    <!-- BLOQUE 3: Lógica con NOT explicado -->
+    <div id="bloque3" class="bloque">
+        <h2>💡 Paso 3: Lógica – el idioma de las decisiones</h2>
+        <p>Todo en programación se reduce a verdadero (<code>true</code>) y falso (<code>false</code>). Los operadores <strong>AND, OR, NOT</strong> combinan estos valores.</p>
+        <p><strong>NOT (!)</strong> es el más simple: invierte el valor. Si algo es verdadero, <code>NOT</code> lo vuelve falso, y viceversa. En PHP se escribe con el signo <code>!</code> delante de la condición. Por ejemplo, si tienes <code>$llueve = true;</code>, entonces <code>!$llueve</code> es <code>false</code>. "No llueve" es la negación de "llueve".</p>
+
+        <div class="test">
+            <p><strong>🧪 Desafío escalonado.</strong> Elige <code>true</code> o <code>false</code> en cada celda. Si todas las respuestas son correctas, pasarás al siguiente paso.</p>
+
+            <!-- Nivel 1: AND básico -->
+            <div class="subtarea">
+                <p><strong>Nivel 1: AND (&&) – ambas ciertas</strong></p>
+                <table>
+                    <tr><th>A</th><th>B</th><th>A AND B</th></tr>
+                    <tr><td>true</td><td>true</td><td><select id="t3_and_0"><option value="">--</option><option value="true">true</option><option value="false">false</option></select></td></tr>
+                    <tr><td>true</td><td>false</td><td><select id="t3_and_1"><option value="">--</option><option value="true">true</option><option value="false">false</option></select></td></tr>
+                    <tr><td>false</td><td>true</td><td><select id="t3_and_2"><option value="">--</option><option value="true">true</option><option value="false">false</option></select></td></tr>
+                    <tr><td>false</td><td>false</td><td><select id="t3_and_3"><option value="">--</option><option value="true">true</option><option value="false">false</option></select></td></tr>
+                </table>
+            </div>
+
+            <!-- Nivel 2: OR básico -->
+            <div class="subtarea">
+                <p><strong>Nivel 2: OR (||) – al menos una cierta</strong></p>
+                <table>
+                    <tr><th>A</th><th>B</th><th>A OR B</th></tr>
+                    <tr><td>true</td><td>true</td><td><select id="t3_or_0"><option value="">--</option><option value="true">true</option><option value="false">false</option></select></td></tr>
+                    <tr><td>true</td><td>false</td><td><select id="t3_or_1"><option value="">--</option><option value="true">true</option><option value="false">false</option></select></td></tr>
+                    <tr><td>false</td><td>true</td><td><select id="t3_or_2"><option value="">--</option><option value="true">true</option><option value="false">false</option></select></td></tr>
+                    <tr><td>false</td><td>false</td><td><select id="t3_or_3"><option value="">--</option><option value="true">true</option><option value="false">false</option></select></td></tr>
+                </table>
+            </div>
+
+            <!-- Nivel 3: expresión combinada paso a paso (auto-relleno) -->
+            <div class="subtarea">
+                <p><strong>Nivel 3: (A AND B) OR (C AND D)</strong> – completa los pasos intermedios</p>
+                <p>Primero calcula <strong>A AND B</strong>:</p>
+                <table>
+                    <tr><th>A</th><th>B</th><th>A AND B</th></tr>
+                    <tr><td>true</td><td>true</td><td><select id="t3_ab_0" onchange="actualizarNivel3()"><option value="">--</option><option value="true">true</option><option value="false">false</option></select></td></tr>
+                    <tr><td>false</td><td>true</td><td><select id="t3_ab_1" onchange="actualizarNivel3()"><option value="">--</option><option value="true">true</option><option value="false">false</option></select></td></tr>
+                    <tr><td>false</td><td>false</td><td><select id="t3_ab_2" onchange="actualizarNivel3()"><option value="">--</option><option value="true">true</option><option value="false">false</option></select></td></tr>
+                    <tr><td>true</td><td>false</td><td><select id="t3_ab_3" onchange="actualizarNivel3()"><option value="">--</option><option value="true">true</option><option value="false">false</option></select></td></tr>
+                </table>
+
+                <p>Luego calcula <strong>C AND D</strong>:</p>
+                <table>
+                    <tr><th>C</th><th>D</th><th>C AND D</th></tr>
+                    <tr><td>false</td><td>false</td><td><select id="t3_cd_0" onchange="actualizarNivel3()"><option value="">--</option><option value="true">true</option><option value="false">false</option></select></td></tr>
+                    <tr><td>true</td><td>false</td><td><select id="t3_cd_1" onchange="actualizarNivel3()"><option value="">--</option><option value="true">true</option><option value="false">false</option></select></td></tr>
+                    <tr><td>true</td><td>true</td><td><select id="t3_cd_2" onchange="actualizarNivel3()"><option value="">--</option><option value="true">true</option><option value="false">false</option></select></td></tr>
+                    <tr><td>false</td><td>true</td><td><select id="t3_cd_3" onchange="actualizarNivel3()"><option value="">--</option><option value="true">true</option><option value="false">false</option></select></td></tr>
+                </table>
+
+                <p>Por último, la combinación final. Las columnas “A AND B” y “C AND D” se rellenan automáticamente con lo que hayas elegido arriba:</p>
+                <table>
+                    <tr><th>A AND B</th><th>C AND D</th><th>(A AND B) OR (C AND D)</th></tr>
+                    <tr><td><span id="t3_ab_disp_0" class="auto-fill">-</span></td><td><span id="t3_cd_disp_0" class="auto-fill">-</span></td><td><select id="t3_final_0"><option value="">--</option><option value="true">true</option><option value="false">false</option></select></td></tr>
+                    <tr><td><span id="t3_ab_disp_1" class="auto-fill">-</span></td><td><span id="t3_cd_disp_1" class="auto-fill">-</span></td><td><select id="t3_final_1"><option value="">--</option><option value="true">true</option><option value="false">false</option></select></td></tr>
+                    <tr><td><span id="t3_ab_disp_2" class="auto-fill">-</span></td><td><span id="t3_cd_disp_2" class="auto-fill">-</span></td><td><select id="t3_final_2"><option value="">--</option><option value="true">true</option><option value="false">false</option></select></td></tr>
+                    <tr><td><span id="t3_ab_disp_3" class="auto-fill">-</span></td><td><span id="t3_cd_disp_3" class="auto-fill">-</span></td><td><select id="t3_final_3"><option value="">--</option><option value="true">true</option><option value="false">false</option></select></td></tr>
+                </table>
+            </div>
+
+            <!-- Nivel 4: desafío avanzado -->
+            <div class="subtarea" id="nivel4_container">
+                <p><strong>Nivel 4: La piedra en el camino – (A AND B) OR (C AND NOT D)</strong></p>
+                <p>Esta expresión tiene una mezcla exigente de trues y falses. Rellena primero las columnas intermedias.</p>
+                <div id="tabla_nivel4"></div>
+            </div>
+            <button class="btn" onclick="verificarBloque(3)">Comprobar todas las tablas</button>
+            <p class="feedback" id="fb3"></p>
+            <div class="explicacion-extra" id="ex3"></div>
+        </div>
+    </div>
+
+    <!-- BLOQUE 4: Algoritmos -->
+    <div id="bloque4" class="bloque">
+        <h2>📋 Paso 4: Algoritmos, las recetas del programador</h2>
+        <p>Un <strong>algoritmo</strong> es una secuencia ordenada de pasos precisos. Ejemplo: preparar un vaso de agua.</p>
+        <pre><code>1. Coger un vaso limpio
+2. Abrir el grifo
+3. Llenar el vaso hasta la marca
+4. Cerrar el grifo
+5. Beber</code></pre>
+        <div class="test">
+            <p>❓ ¿Qué defecto tiene este algoritmo? "1. Pan 2. Tostadora 3. Mantequilla"</p>
+            <label class="opcion"><input type="radio" name="p4" value="a"> A) Demasiado rápido</label>
+            <label class="opcion"><input type="radio" name="p4" value="b"> B) Los pasos no son precisos ni ordenados</label>
+            <label class="opcion"><input type="radio" name="p4" value="c"> C) Usa mantequilla</label>
+            <button class="btn" onclick="verificarBloque(4)">Comprobar</button>
+            <p class="feedback" id="fb4"></p>
+            <div class="explicacion-extra" id="ex4"></div>
+        </div>
+    </div>
+
+    <!-- BLOQUE 5: Lenguajes de programación -->
+    <div id="bloque5" class="bloque">
+        <h2>🌐 Paso 5: Lenguajes de programación</h2>
+        <p>Hay lenguajes de <strong>tipado fuerte</strong> (Java, C) donde el tipo se declara y no cambia, y de <strong>tipado débil/dinámico</strong> como PHP, donde la variable adopta el tipo del valor. También están los <strong>compilados</strong> (generan un ejecutable) y los <strong>interpretados</strong> como PHP, que se ejecutan línea a línea.</p>
+        <div class="nota">
+            <strong>🗣️ En este curso usaremos PHP</strong> porque su sintaxis es clara y es ampliamente usado en la web. Todo lo que aprendas sobre variables, condiciones y bucles vale para cualquier lenguaje.
+        </div>
+        <div class="test">
+            <p>❓ ¿Qué significa que PHP es interpretado?</p>
+            <label class="opcion"><input type="radio" name="p5" value="a"> A) Necesita compilar un .exe</label>
+            <label class="opcion"><input type="radio" name="p5" value="b"> B) Un intérprete ejecuta el código directamente</label>
+            <label class="opcion"><input type="radio" name="p5" value="c"> C) Solo funciona en Windows</label>
+            <button class="btn" onclick="verificarBloque(5)">Comprobar</button>
+            <p class="feedback" id="fb5"></p>
+            <div class="explicacion-extra" id="ex5"></div>
+        </div>
+    </div>
+
+    <!-- BLOQUE 6: Variables -->
+    <div id="bloque6" class="bloque">
+        <h2>📦 Paso 6: Variables – cajas con nombre (y metadatos)</h2>
+        <pre><code>&lt;?php
+$nombre = "Ana";
+$edad   = 28;
+$esEstudiante = true;
+echo $nombre . " tiene " . $edad;
+?&gt;</code></pre>
+        <div class="metafora">
+            <strong>🧩 Metadatos:</strong> Además del valor, el lenguaje guarda aparte el tipo, la longitud (en cadenas/arrays) y otras marcas. Así puede manejar la variable sin que tú te preocupes.
+        </div>
+        <div class="test">
+            <p>❓ ¿Qué tipo es <code>$x = "123";</code>?</p>
+            <label class="opcion"><input type="radio" name="p6" value="a"> A) Entero</label>
+            <label class="opcion"><input type="radio" name="p6" value="b"> B) String</label>
+            <label class="opcion"><input type="radio" name="p6" value="c"> C) Booleano</label>
+            <button class="btn" onclick="verificarBloque(6)">Comprobar</button>
+            <p class="feedback" id="fb6"></p>
+            <div class="explicacion-extra" id="ex6"></div>
+        </div>
+    </div>
+
+    <!-- BLOQUE 7: Comentarios y errores -->
+    <div id="bloque7" class="bloque">
+        <h2>📝 Paso 7: Comentarios y cómo leer errores</h2>
+        <pre><code>&lt;?php
+// Comentario de una línea
+$edad = 30; // También aquí
+
+/*
+   Comentario
+   de varias líneas
+*/
+?&gt;</code></pre>
+        <p>Los comentarios son ignorados por el intérprete; explican el código para humanos. Acostúmbrate a usarlos.</p>
+        <p>Cuando algo falla, PHP muestra un mensaje como:</p>
+        <pre><code>Parse error: syntax error, unexpected '$edad' in /test.php on line 5</code></pre>
+        <p>El número de línea y la palabra inesperada te indican dónde mirar. No tengas miedo a los errores: son pistas.</p>
+        <div class="test">
+            <p>❓ ¿Qué hace PHP con <code>//</code>?</p>
+            <label class="opcion"><input type="radio" name="p7" value="a"> A) Lo ejecuta</label>
+            <label class="opcion"><input type="radio" name="p7" value="b"> B) Ignora el resto de la línea</label>
+            <label class="opcion"><input type="radio" name="p7" value="c"> C) Detiene el programa</label>
+            <button class="btn" onclick="verificarBloque(7)">Comprobar</button>
+            <p class="feedback" id="fb7"></p>
+            <div class="explicacion-extra" id="ex7"></div>
+        </div>
+    </div>
+
+    <!-- BLOQUE 8: Bloques y sentencias -->
+    <div id="bloque8" class="bloque">
+        <h2>📦 Paso 8: Bloques y sentencias</h2>
+        <p>Una <strong>sentencia</strong> es una instrucción completa: <code>echo "Hola";</code> o <code>$x = 5;</code>. Las sentencias terminan con punto y coma.</p>
+        <p>Un <strong>bloque</strong> es un grupo de sentencias encerradas entre llaves <code>{ }</code>. Se usan para que el programa trate varias instrucciones como un solo paquete, por ejemplo debajo de un <code>if</code> o un <code>for</code>.</p>
+        <pre><code>if ($condicion) {
+    // Comienza el bloque
+    $contador = 1;
+    echo "Dentro del if";
+}   // Fin del bloque</code></pre>
+        <div class="metafora">
+            <strong>💡 Analogía:</strong> Las llaves son como los bordes de un cajón. Todo lo que metes dentro pertenece a ese cajón, y la máquina lo abre solo cuando toca.
+        </div>
+        <p>No te preocupes aún por qué variables son visibles dentro o fuera del bloque.</p>
+
+        <div class="test">
+            <p>❓ ¿Cuántas sentencias hay en este bloque?</p>
+            <pre><code>{
+    $a = 1;
+    $b = 2;
+    echo $a + $b;
+}</code></pre>
+            <label class="opcion"><input type="radio" name="p8" value="a"> A) 1</label>
+            <label class="opcion"><input type="radio" name="p8" value="b"> B) 2</label>
+            <label class="opcion"><input type="radio" name="p8" value="c"> C) 3</label>
+            <button class="btn" onclick="verificarBloque(8)">Comprobar</button>
+            <p class="feedback" id="fb8"></p>
+            <div class="explicacion-extra" id="ex8"></div>
+        </div>
+    </div>
+
+    <!-- BLOQUE 9: IF -->
+    <div id="bloque9" class="bloque">
+        <h2>🔀 Paso 9: Decidir con IF</h2>
+        <pre><code>&lt;?php
+$hora = 9;
+if ($hora &lt; 12) {
+    echo "Buenos días";
+}
+?&gt;</code></pre>
+        <div class="test">
+            <p>❓ ¿Qué imprime esto?</p>
+            <pre><code>&lt;?php
+$x = 5;
+if ($x &gt; 3) {
+    echo "Mayor";
+}
+?&gt;</code></pre>
+            <label class="opcion"><input type="radio" name="p9" value="a"> A) "Menor"</label>
+            <label class="opcion"><input type="radio" name="p9" value="b"> B) "Mayor"</label>
+            <label class="opcion"><input type="radio" name="p9" value="c"> C) Nada</label>
+            <button class="btn" onclick="verificarBloque(9)">Comprobar</button>
+            <p class="feedback" id="fb9"></p>
+            <div class="explicacion-extra" id="ex9"></div>
+        </div>
+    </div>
+
+    <!-- BLOQUE 10: IF ELSE -->
+    <div id="bloque10" class="bloque">
+        <h2>🔀🔀 Paso 10: IF con ELSE y ELSEIF</h2>
+        <pre><code>&lt;?php
+$nota = 8;
+if ($nota &gt;= 9) {
+    echo "Sobresaliente";
+} elseif ($nota &gt;= 7) {
+    echo "Notable";
+} elseif ($nota &gt;= 5) {
+    echo "Aprobado";
+} else {
+    echo "Insuficiente";
+}
+?&gt;</code></pre>
+        <div class="test">
+            <p>❓ ¿Qué imprime?</p>
+            <pre><code>&lt;?php
+$x = 10;
+if ($x &gt; 20) {
+    echo "A";
+} elseif ($x &gt; 5) {
+    echo "B";
+} else {
+    echo "C";
+}
+?&gt;</code></pre>
+            <label class="opcion"><input type="radio" name="p10" value="a"> A) A</label>
+            <label class="opcion"><input type="radio" name="p10" value="b"> B) B</label>
+            <label class="opcion"><input type="radio" name="p10" value="c"> C) C</label>
+            <button class="btn" onclick="verificarBloque(10)">Comprobar</button>
+            <p class="feedback" id="fb10"></p>
+            <div class="explicacion-extra" id="ex10"></div>
+        </div>
+    </div>
+
+    <!-- BLOQUE 11: SWITCH -->
+    <div id="bloque11" class="bloque">
+        <h2>🔀🔀🔀 Paso 11: SWITCH</h2>
+        <p>Un switch compara una variable con varios valores fijos. Es equivalente a muchos <code>elseif</code>.</p>
+        <pre><code>&lt;?php
+switch ($variable) {        // ¿Qué evaluamos?
+    case "valor1":          // Si $variable == "valor1"
+        // código
+        break;              // Salir del switch
+    case "valor2":
+        // código
+        break;
+    default:                // Opcional, si nada encaja
+        // código
+}
+?&gt;</code></pre>
+        <p>Ejemplo del semáforo:</p>
+        <pre><code>&lt;?php
+$color = "verde";
+switch ($color) {
+    case "rojo":
+        echo "Pare";
+        break;
+    case "amarillo":
+        echo "Precaución";
+        break;
+    case "verde":
+        echo "Avanza";
+        break;
+    default:
+        echo "Color no válido";
+}
+?&gt;</code></pre>
+        <div class="test">
+            <p>❓ ¿Qué imprime?</p>
+            <pre><code>&lt;?php
+$dia = 3;
+switch ($dia) {
+    case 1:
+        echo "Lun";
+        break;
+    case 2:
+        echo "Mar";
+        break;
+    case 3:
+        echo "Mié";
+        break;
+    default:
+        echo "?";
+}
+?&gt;</code></pre>
+            <label class="opcion"><input type="radio" name="p11" value="a"> A) Lun</label>
+            <label class="opcion"><input type="radio" name="p11" value="b"> B) Mar</label>
+            <label class="opcion"><input type="radio" name="p11" value="c"> C) Mié</label>
+            <button class="btn" onclick="verificarBloque(11)">Comprobar</button>
+            <p class="feedback" id="fb11"></p>
+            <div class="explicacion-extra" id="ex11"></div>
+        </div>
+    </div>
+
+    <!-- BLOQUE 12: FOR -->
+    <div id="bloque12" class="bloque">
+        <h2>🔁 Paso 12: Repetir con FOR</h2>
+        <pre><code>&lt;?php
+for ($i = 1; $i &lt;= 4; $i = $i + 1) {
+    echo "Vuelta $i\n";
+}
+?&gt;</code></pre>
+        <div class="test">
+            <p>❓ ¿Cuántas veces imprime "Hola"?</p>
+            <pre><code>&lt;?php
+for ($j = 0; $j &lt; 3; $j++) {
+    echo "Hola";
+}
+?&gt;</code></pre>
+            <label class="opcion"><input type="radio" name="p12" value="a"> A) 3</label>
+            <label class="opcion"><input type="radio" name="p12" value="b"> B) 4</label>
+            <label class="opcion"><input type="radio" name="p12" value="c"> C) 2</label>
+            <button class="btn" onclick="verificarBloque(12)">Comprobar</button>
+            <p class="feedback" id="fb12"></p>
+            <div class="explicacion-extra" id="ex12"></div>
+        </div>
+    </div>
+
+    <!-- BLOQUE 13: WHILE -->
+    <div id="bloque13" class="bloque">
+        <h2>🔄 Paso 13: WHILE</h2>
+        <pre><code>&lt;?php
+$saldo = 100;
+while ($saldo &gt; 0) {
+    echo "Quedan $saldo €\n";
+    $saldo = $saldo - 20;
+}
+echo "Saldo agotado.";
+?&gt;</code></pre>
+        <div class="test">
+            <p>❓ ¿Qué imprime?</p>
+            <pre><code>&lt;?php
+$n = 3;
+while ($n &gt; 0) {
+    echo $n;
+    $n = $n - 1;
+}
+?&gt;</code></pre>
+            <label class="opcion"><input type="radio" name="p13" value="a"> A) 321</label>
+            <label class="opcion"><input type="radio" name="p13" value="b"> B) 123</label>
+            <label class="opcion"><input type="radio" name="p13" value="c"> C) Nunca termina</label>
+            <button class="btn" onclick="verificarBloque(13)">Comprobar</button>
+            <p class="feedback" id="fb13"></p>
+            <div class="explicacion-extra" id="ex13"></div>
+        </div>
+    </div>
+
+    <!-- BLOQUE 14: Cierre -->
+    <div id="bloque14" class="bloque">
+    <h2>🏁 El motor ya está en marcha</h2>
+    <p>No aprendiste a programar en 14 pasos. Aprendiste algo más importante: <strong>aprendiste qué está pasando realmente</strong> cuando escribís una línea de código.</p>
+
+    <div style="background:#ebf8ff; padding:1.5rem; border-radius:1rem; margin-top:1rem; margin-bottom:1.5rem;">
+        <p style="font-size:1.3rem; font-weight:bold;">✅ Curso completado</p>
+        <p style="color:#2c5282;">Ahora cuando tu profesor diga "declará una variable" o "poné un if", tu cabeza ya no va a estar en blanco. Vas a saber qué está haciendo la máquina por dentro.</p>
+    </div>
+
+    <div class="metafora">
+        <strong>🧠 No eras vos, era el enfoque</strong><br>
+        Aprender a programar sin entender la RAM, los tipos, la lógica booleana o los bloques es como aprender a cocinar sin saber qué es una sartén, un horno o una cebolla. Te daban la receta y vos la seguías sin entender por qué el fuego tiene que estar medio o por qué se corta en cubitos. No es falta de inteligencia: te estaban enseñando una profesión nueva saltándose los fundamentos. Eso era lo que faltaba.
+    </div>
+
+    <h3>📋 Lo que ahora sabés y antes no</h3>
+    <ul>
+        <li><strong>Cuando veas <code>$nombre = "Ana";</code></strong> ya no vas a pensar "es una línea que copio". Vas a imaginar un casillero en la RAM, una etiqueta pegada que dice "nombre", y dentro los números 65-110-97. Vas a entender que el signo <code>$</code> no es decorativo: es la forma en que PHP dice "esto es una variable".</li>
+        <li><strong>Cuando veas un <code>if</code></strong> no vas a preguntarte "¿por qué a veces se ejecuta y a veces no?". Vas a saber que el bloque de llaves solo se abre si la condición es <code>true</code>. Punto. No hay magia.</li>
+        <li><strong>Cuando escriban <code>for ($i = 0; $i &lt; 10; $i++)</code></strong> en el pizarrón, vas a poder leerlo como "empezás en 0, mientras sea menor que 10, avanzás de a uno". No es un hechizo: es un contador.</li>
+        <li><strong>Cuando el código tire un error en la línea 8</strong> no vas a entrar en pánico. Vas a ir a la línea 8, vas a mirar si falta un punto y coma o una llave, y vas a entender que el intérprete te está dando pistas porque no puede adivinar lo que quisiste hacer.</li>
+    </ul>
+
+    <h3>🔎 Por qué antes sentías que no entendías nada</h3>
+    <p>Porque te estaban enseñando las <em>recetas</em> sin explicarte los <em>ingredientes</em>. Este curso te mostró los ingredientes: la RAM, los tipos, las condiciones booleanas, los bloques, los bucles. Todo lo demás que veas en adelante —funciones, arrays, objetos, bases de datos— son solo combinaciones más elaboradas de estos mismos ingredientes.</p>
+
+    <div class="nota">
+        <strong>💡 Una aclaración importante:</strong> Este curso simplificó algunas cosas a propósito. En la realidad, PHP maneja los tipos de forma más flexible, los bucles pueden anidarse, y existen temas como el ámbito de las variables que aún no viste. Pero eso no invalida lo aprendido: es el siguiente escalón, no una corrección. La base que construiste es correcta.
+    </div>
+
+    <h3>🧭 Cómo seguir desde acá (sin frustrarte)</h3>
+    <p>Ahora sí podés volver a tus clases o tutoriales con otros ojos:</p>
+    <ul>
+        <li>Cuando el profe explique algo nuevo, preguntate: <strong>"¿qué está pasando en la RAM con esto?"</strong>. Si no lo sabés, es la pregunta correcta para investigar.</li>
+        <li>Probá romper el código a propósito. Cambiá un <code>true</code> por un <code>false</code>, sacá una llave, poné mal el contador del <code>for</code>. Ver qué error sale te va a enseñar más que copiar sin errores.</li>
+        <li>Explicá en voz alta lo que hace cada línea como si estuvieras enseñándoselo a alguien que no sabe nada. Si no podés explicarlo, ahí hay un hueco que podés repasar.</li>
+    </ul>
+
+    <div style="background:#f0fff4; border-left:4px solid #38a169; padding:1rem; border-radius:0.4rem; margin-top:1.5rem;">
+        <p><strong>🌱 En resumen:</strong> No salís de este curso sabiendo programar. Salís con el <strong>motor mental encendido</strong> para entender lo que programás. Eso es lo que te faltaba. El resto es práctica y tiempo. Confiá en que podés, porque la lógica ya la tenés.</p>
+    </div>
+</div>
+</div>
+
+<script>
+    // Nuevo orden de bloques (0-14)
+    const bloques = [
+        { id: 0, correcta: "b", nombre: "Inicio", explicacion: "La RAM es memoria de trabajo volátil, no el disco duro. Si apagas el ordenador, todo lo que había en RAM desaparece." },
+        { id: 1, correcta: "b", nombre: "RAM", explicacion: "La dirección identifica el casillero, igual que el número de una matrícula. El contenido es lo que hay dentro, la dirección es solo la chapa." },
+        { id: 2, correcta: "b", nombre: "Tipos", explicacion: "Todo en la RAM se guarda como números. Incluso las fotos o el texto no son más que largas listas de números interpretados de cierta manera." },
+        { id: 3, correcta: null, nombre: "Lógica", explicacion: "AND exige que todas las condiciones sean ciertas. OR solo necesita una. NOT invierte. Para combinar, los paréntesis marcan el orden, como en matemáticas." },
+        { id: 4, correcta: "b", nombre: "Algoritmos", explicacion: "Un algoritmo mal detallado es como una receta que dice 'hacer pastel'. La máquina no puede adivinar los pasos intermedios." },
+        { id: 5, correcta: "b", nombre: "Lenguajes", explicacion: "PHP no necesita compilarse; el intérprete lo ejecuta directamente. Eso facilita hacer cambios y ver resultados al instante, pero también significa que los errores aparecen en plena ejecución." },
+        { id: 6, correcta: "b", nombre: "Variables", explicacion: "PHP deduce el tipo automáticamente. Eso agiliza escribir código, pero exige que tú sepas en todo momento qué clase de valor contiene la variable." },
+        { id: 7, correcta: "b", nombre: "Comentarios", explicacion: "Los comentarios no son para la máquina, sino para la persona que leerá el código más tarde (¡que puedes ser tú mismo en un par de semanas!)." },
+        { id: 8, correcta: "c", nombre: "Bloques", explicacion: "Dentro de un bloque puedes tener todas las sentencias que necesites. Es como una bolsa donde echas instrucciones para que se ejecuten juntas cuando toque." },
+        { id: 9, correcta: "b", nombre: "IF", explicacion: "Si la condición es falsa, el bloque simplemente no se ejecuta. No es un error; el programa sigue su curso por debajo." },
+        { id: 10, correcta: "b", nombre: "IF ELSE", explicacion: "En los elseif, el orden es crucial. Pon siempre la condición más exigente primero, porque en cuanto encuentra una verdadera, ignora el resto." },
+        { id: 11, correcta: "c", nombre: "SWITCH", explicacion: "Switch es un if-elseif disfrazado. Úsalo cuando compares la misma variable contra varios valores fijos; el código queda más limpio." },
+        { id: 12, correcta: "a", nombre: "FOR", explicacion: "El for es un reloj: comienzas a una hora, marcas cuándo parar y cuánto avanzas cada vez. Muy útil para listas numeradas." },
+        { id: 13, correcta: "a", nombre: "WHILE", explicacion: "While es como una noria que gira mientras haya pasajeros. Si desde el principio no hay pasajeros, no gira ni una vez." },
+        { id: 14, correcta: null, nombre: "Cierre", explicacion: null }
+    ];
+
+    let progreso = 0;
+
+    // Genera la tabla de nivel 4 (16 filas, orden descendente todas true -> todas false)
+    function generarTablaNivel4() {
+        const combinaciones = [];
+        for (let val = 15; val >= 0; val--) {
+            const a = !!(val & 8);
+            const b = !!(val & 4);
+            const c = !!(val & 2);
+            const d = !!(val & 1);
+            combinaciones.push([a, b, c, d]);
+        }
+
+        let html = '<table>';
+        html += '<tr><th>A</th><th>B</th><th>C</th><th>D</th><th>A AND B</th><th>C AND NOT D</th><th>(A AND B) OR (C AND NOT D)</th></tr>';
+        combinaciones.forEach((fila, idx) => {
+            const [a, b, c, d] = fila;
+            html += `<tr>
+                <td>${a}</td><td>${b}</td><td>${c}</td><td>${d}</td>
+                <td><select id="t3_l4_ab_${idx}"><option value="">--</option><option value="true">true</option><option value="false">false</option></select></td>
+                <td><select id="t3_l4_cnotd_${idx}"><option value="">--</option><option value="true">true</option><option value="false">false</option></select></td>
+                <td><select id="t3_l4_final_${idx}"><option value="">--</option><option value="true">true</option><option value="false">false</option></select></td>
+            </tr>`;
+        });
+        html += '</table>';
+        document.getElementById('tabla_nivel4').innerHTML = html;
+    }
+
+    // Auto-relleno del nivel 3: lee los selects de AB y CD y actualiza los spans
+    function actualizarNivel3() {
+        for (let i = 0; i < 4; i++) {
+            const abSelect = document.getElementById('t3_ab_' + i);
+            const cdSelect = document.getElementById('t3_cd_' + i);
+            const abDisplay = document.getElementById('t3_ab_disp_' + i);
+            const cdDisplay = document.getElementById('t3_cd_disp_' + i);
+            if (abSelect && abDisplay) {
+                abDisplay.textContent = abSelect.value === '' ? '-' : abSelect.value;
+            }
+            if (cdSelect && cdDisplay) {
+                cdDisplay.textContent = cdSelect.value === '' ? '-' : cdSelect.value;
+            }
+        }
+    }
+
+    function actualizarProgresoVisual() {
+        const barra = document.getElementById('progreso');
+        barra.innerHTML = '';
+        bloques.forEach((b, idx) => {
+            const div = document.createElement('div');
+            div.className = 'punto';
+            if (idx < progreso) div.classList.add('completado');
+            if (idx === progreso) div.classList.add('actual');
+            div.textContent = b.nombre;
+            barra.appendChild(div);
+        });
+
+        for (let i = 0; i <= progreso; i++) {
+            document.getElementById('bloque' + i).classList.add('activo');
+        }
+        for (let i = progreso + 1; i < bloques.length; i++) {
+            document.getElementById('bloque' + i).classList.remove('activo');
+        }
+    }
+
+    function verificarBloque(idBloque) {
+        if (idBloque < progreso) return;
+
+        const fb = document.getElementById('fb' + idBloque);
+        const exDiv = document.getElementById('ex' + idBloque);
+        let esCorrecto = false;
+
+        // Bloque 3: validar todos los niveles de lógica
+        if (idBloque === 3) {
+            // Nivel 1 AND
+            const andRes = ['true','false','false','false'];
+            for (let i=0; i<4; i++) {
+                const el = document.getElementById('t3_and_'+i);
+                if (!el || el.value !== andRes[i]) {
+                    fb.innerHTML = '❌ Revisa el Nivel 1 (AND). Recuerda: solo es true si ambas son true.'; fb.style.color='#c53030'; return;
+                }
+            }
+            // Nivel 2 OR
+            const orRes = ['true','true','true','false'];
+            for (let i=0; i<4; i++) {
+                const el = document.getElementById('t3_or_'+i);
+                if (!el || el.value !== orRes[i]) {
+                    fb.innerHTML = '❌ Revisa el Nivel 2 (OR). Solo es false si ambas son false.'; fb.style.color='#c53030'; return;
+                }
+            }
+            // Nivel 3: intermedios y final
+            const abRes = ['true','false','false','false'];
+            const cdRes = ['false','false','true','false'];
+            const finalRes = ['true','false','true','false'];
+            for (let i=0; i<4; i++) {
+                const ab = document.getElementById('t3_ab_'+i);
+                const cd = document.getElementById('t3_cd_'+i);
+                const fin = document.getElementById('t3_final_'+i);
+                if (!ab || ab.value !== abRes[i] || !cd || cd.value !== cdRes[i] || !fin || fin.value !== finalRes[i]) {
+                    fb.innerHTML = '❌ Error en el Nivel 3. Comprueba los pasos intermedios y la combinación final.'; fb.style.color='#c53030'; return;
+                }
+            }
+            // Nivel 4: 16 filas con expresión (A AND B) OR (C AND NOT D)
+            for (let i=0; i<16; i++) {
+                const abSelect = document.getElementById('t3_l4_ab_'+i);
+                const cnotdSelect = document.getElementById('t3_l4_cnotd_'+i);
+                const finalSelect = document.getElementById('t3_l4_final_'+i);
+                if (!abSelect || !cnotdSelect || !finalSelect) {
+                    fb.innerHTML = '❌ Error inesperado en el Nivel 4.'; fb.style.color='#c53030'; return;
+                }
+                // Obtener valores de verdad desde las celdas (texto de los td)
+                const fila = finalSelect.parentElement.parentElement;
+                const celdas = fila.querySelectorAll('td');
+                const a = celdas[0].textContent.trim() === 'true';
+                const b = celdas[1].textContent.trim() === 'true';
+                const c = celdas[2].textContent.trim() === 'true';
+                const d = celdas[3].textContent.trim() === 'true';
+                const abCorr = a && b;
+                const cnotdCorr = c && !d;
+                const finalCorr = abCorr || cnotdCorr;
+                if (abSelect.value !== String(abCorr) || cnotdSelect.value !== String(cnotdCorr) || finalSelect.value !== String(finalCorr)) {
+                    fb.innerHTML = '❌ El Nivel 4 es desafiante. Revisa cada fila con calma: primero A AND B, luego C AND NOT D, y al final el OR.'; fb.style.color='#c53030'; return;
+                }
+            }
+            esCorrecto = true;
+        } else {
+            // tests de opción múltiple
+            const opciones = document.getElementsByName('p' + idBloque);
+            let seleccionada = null;
+            for (let op of opciones) {
+                if (op.checked) { seleccionada = op.value; break; }
+            }
+            if (!seleccionada) {
+                fb.textContent = '⚠️ Selecciona una respuesta.'; fb.style.color='#c53030'; return;
+            }
+            if (seleccionada === bloques[idBloque].correcta) {
+                esCorrecto = true;
+            } else {
+                fb.textContent = '❌ Esa no es la respuesta correcta.'; fb.style.color='#c53030';
+            }
+        }
+
+        if (esCorrecto) {
+            fb.textContent = '✅ ¡Correcto! Siguiente paso desbloqueado.';
+            fb.style.color = '#22543d';
+            if (exDiv && bloques[idBloque].explicacion) {
+                exDiv.innerHTML = '<strong>🧠 ¿Por qué?</strong> ' + bloques[idBloque].explicacion;
+                exDiv.classList.add('mostrar');
+            }
+            if (progreso === idBloque && idBloque < bloques.length - 1) {
+                progreso = idBloque + 1;
+                actualizarProgresoVisual();
+                setTimeout(() => {
+                    document.getElementById('bloque' + progreso).scrollIntoView({ behavior: 'smooth' });
+                }, 150);
+            } else if (idBloque === bloques.length - 2) {
+                progreso = idBloque + 1;
+                actualizarProgresoVisual();
+                setTimeout(() => {
+                    document.getElementById('bloque' + (bloques.length - 1)).scrollIntoView({ behavior: 'smooth' });
+                }, 150);
+            }
+        }
+    }
+
+    // Inicializar tabla nivel 4 y el progreso
+    generarTablaNivel4();
+    actualizarProgresoVisual();
+    // Al cargar, rellenar los spans del nivel 3 por si acaso
+    actualizarNivel3();
+</script>
+</body>
+</html>
