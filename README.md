@@ -1,2 +1,2 @@
-# Inicio_de_mi_programaci-n
-Repositorio solo para hostear la pagina cheta que vibecodee
+# Inicio de mi programación
+Repositorio solo para hostear la página cheta que vibecodee para enseñar lo que aprendí de programación a grandes rasgos.
